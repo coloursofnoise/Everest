@@ -70,6 +70,15 @@ namespace Celeste.Mod {
             Max = max;
         }
     }
+    
+    /// <summary>
+    /// Opens a menu for selecting from a list of options.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SettingSelectFromListAttribute : Attribute {
+        public SettingSelectFromListAttribute() {
+        }
+    }
 
     /// <summary>
     /// Shows a button that will open a number input screen. Supported on int and float properties.

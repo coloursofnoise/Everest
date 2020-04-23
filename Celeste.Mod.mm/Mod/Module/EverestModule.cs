@@ -470,19 +470,32 @@ namespace Celeste.Mod {
                         })
                     ;
                 } else if (propType.IsEnum) {
-                    Array enumValues = Enum.GetValues(propType);
-                    Array.Sort((int[]) enumValues);
                     string enumNamePrefix = $"{nameDefaultPrefix}{prop.Name.ToLowerInvariant()}_";
-                    item =
-                        new TextMenu.Slider(name, (i) => {
-                            string enumName = enumValues.GetValue(i).ToString();
-                            return
-                                $"{enumNamePrefix}{enumName.ToLowerInvariant()}".DialogCleanOrNull() ??
-                                $"modoptions_{propType.Name.ToLowerInvariant()}_{enumName.ToLowerInvariant()}".DialogCleanOrNull() ??
-                                enumName;
-                        }, 0, enumValues.Length - 1, (int) value)
-                        .Change(v => prop.SetValue(settings, v))
-                    ;
+                    if (prop.GetCustomAttribute<SettingSelectFromListAttribute>() != null) {
+                        item =
+                            new TextMenu.Button(name + ": " + value)
+                            .Pressed(() => {
+                                Audio.Play(SFX.ui_main_savefile_rename_start);
+                                menu.SceneAs<Overworld>().Goto<OuiListSelect>().Init<OuiModOptions>(
+                                    Enum.GetNames(propType).ToArray(),
+                                    v => prop.SetValue(settings, Enum.Parse(propType, v))
+                                );
+                            })
+                        ;
+                    } else {
+                        Array enumValues = Enum.GetValues(propType);
+                        Array.Sort((int[]) enumValues);
+                        item =
+                            new TextMenu.Slider(name, (i) => {
+                                string enumName = enumValues.GetValue(i).ToString();
+                                return
+                                    $"{enumNamePrefix}{enumName.ToLowerInvariant()}".DialogCleanOrNull() ??
+                                    $"modoptions_{propType.Name.ToLowerInvariant()}_{enumName.ToLowerInvariant()}".DialogCleanOrNull() ??
+                                    enumName;
+                            }, 0, enumValues.Length - 1, (int) value)
+                            .Change(v => prop.SetValue(settings, v))
+                        ;
+                    }
 
                 } else if (!inGame && propType == typeof(string)) {
                     int maxValueLength = prop.GetCustomAttribute<SettingMaxLengthAttribute>()?.Max ?? 12;
